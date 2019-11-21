@@ -1,4 +1,37 @@
 body {
-  width: 300px;
+  width: 90%;
   padding: 10px;
+  font-size: 100%;
+}
+
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column
+}
+
+.form:first-child {
+  margin-top: 10px;
+}
+
+.form * {
+  margin-bottom: 10px;
+}
+
+.form button {
+  width: 100px;
+  border-radius: 10px;
+  border: none;
+  padding: 5px;
+  background: greenyellow;
+}
+
+.form button:disabled {
+  background: forestgreen;
+  color: white;
+  cursor: wait;
+}
+
+.form .error {
+  color: red;
 }
