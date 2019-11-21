@@ -5,14 +5,14 @@ var webpack = require('webpack'),
   { CleanWebpackPlugin } = require('clean-webpack-plugin'),
   CopyWebpackPlugin = require('copy-webpack-plugin'),
   HtmlWebpackPlugin = require('html-webpack-plugin'),
-  WriteFilePlugin = require('write-file-webpack-plugin');
+  WriteFilePlugin = require('write-file-webpack-plugin')
 
 // load the secrets
 var alias = {
   'react-dom': '@hot-loader/react-dom',
-};
+}
 
-var secretsPath = path.join(__dirname, 'secrets.' + env.NODE_ENV + '.js');
+var secretsPath = path.join(__dirname, 'secrets.' + env.NODE_ENV + '.js')
 
 var fileExtensions = [
   'jpg',
@@ -25,10 +25,10 @@ var fileExtensions = [
   'ttf',
   'woff',
   'woff2',
-];
+]
 
 if (fileSystem.existsSync(secretsPath)) {
-  alias['secrets'] = secretsPath;
+  alias['secrets'] = secretsPath
 }
 
 var options = {
@@ -98,7 +98,7 @@ var options = {
                 version: process.env.npm_package_version,
                 ...JSON.parse(content.toString()),
               })
-            );
+            )
           },
         },
       ],
@@ -138,10 +138,10 @@ var options = {
     }),
     new WriteFilePlugin(),
   ],
-};
-
-if (env.NODE_ENV === 'development') {
-  options.devtool = 'cheap-module-eval-source-map';
 }
 
-module.exports = options;
+if (env.NODE_ENV === 'development') {
+  options.devtool = 'cheap-module-eval-source-map'
+}
+
+module.exports = options

@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import Greetings from '../../containers/Greetings/Greetings';
-import './Popup.css';
+import React, { Component } from 'react'
+import Greetings from '../../containers/Greetings/Greetings'
+import './Popup.css'
 
 class Popup extends Component {
   render() {
@@ -17,8 +17,8 @@ class Popup extends Component {
           <Greetings />
         </div>
       </div>
-    );
+    )
   }
 }
 
-export default Popup;
+export default Popup
