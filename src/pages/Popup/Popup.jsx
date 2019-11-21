@@ -34,14 +34,12 @@ const Popup = () => {
   return <div>
     <h1>Enviar mensajes de Whatsapp</h1>
     <span>Colocar los links de Whatsapp aqui debajo.</span>
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'column',
-      }}
-    >
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+    }}>
       <LinksForm onSubmit={syncLinksCallback}/>
     </div>
     <h2>Links en proceso:</h2>

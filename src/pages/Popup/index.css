@@ -28,13 +28,15 @@ body {
   box-shadow: 2px 4px 3px #bbb;
 }
 
-.form button:active  {
+.form button:active {
   box-shadow: 2px 2px 3px #ddd;
   transform: translateY(2px);
 }
+
 .form button:hover:not(:disabled) {
   filter: brightness(1.1);
 }
+
 .form button:disabled {
   background: forestgreen;
   color: white;

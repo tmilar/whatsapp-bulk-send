@@ -4,23 +4,23 @@ import useForm from '../../hooks/use-form'
 const submitWhatsappLinks = async links => {
 
   return new Promise((resolve, reject) =>
-    chrome.runtime.sendMessage({type: "set-links", data: links}, (response = {}) => {
-      if(chrome.runtime.error) {
-        console.log("chrome.runtime.error", chrome.runtime.error)
+    chrome.runtime.sendMessage({ type: 'set-links', data: links }, (response = {}) => {
+      if (chrome.runtime.error) {
+        console.log('chrome.runtime.error', chrome.runtime.error)
         reject(chrome.runtime.error)
         return
       }
 
-      console.log("got response: ", response)
+      console.log('got response: ', response)
 
-      const {status, message} = response
-      if(status !== 200) {
-        console.log("Submit response error", response, status, message)
+      const { status, message } = response
+      if (status !== 200) {
+        console.log('Submit response error', response, status, message)
         reject(message)
         return
       }
       resolve()
-    })
+    }),
   )
 }
 
@@ -51,19 +51,19 @@ const LinksForm = (props) => {
 
       if (!links || links.length === 0) {
         alert('No se ha ingresado ningun link de envio de whatsapp.')
-        onComplete({ok: true})
+        onComplete({ ok: true })
         return
       }
 
       try {
-        console.log("Submitting links")
+        console.log('Submitting links')
         await submitWhatsappLinks(links)
         console.log('Sumitted links OK')
         onComplete({ ok: true })
         await props.onSubmit()
       } catch (error) {
         console.error('Form submit error', error)
-        onComplete({ok: false, error})
+        onComplete({ ok: false, error })
       }
     },
   })
@@ -76,7 +76,8 @@ const LinksForm = (props) => {
     <textarea name="links" value={values.links} onChange={handleChange} onBlur={handleBlur} onKeyDown={handleKeyDown}/>
     {!!linksCount && linksCount > 0 && <span>Total: {linksCount} links.</span>}
     <button type="submit" disabled={submitDisabled}>Comenzar</button>
-    {submitError && submitState.error && <span className={"error"}>Ups, hubo un error: <code>{submitState.error.message || submitState.error}</code></span>}
+    {submitError && submitState.error &&
+    <span className={'error'}>Ups, hubo un error: <code>{submitState.error.message || submitState.error}</code></span>}
   </form>
 }
 
