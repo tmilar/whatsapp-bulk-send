@@ -29,13 +29,12 @@ const handleKeyDown = e => {
   // In case you have a limitation
   // limit to 40% of window height
   const limit = window.innerHeight * 0.4
-  e.target.style.height = `${Math.min(e.target.scrollHeight, limit)}px`
+  e.target.style.height = `${Math.min(e.target.scrollHeight, limit) + 5}px`
 }
 
 const parseLinks = links => links && links.split('\n').filter(l => l.length > 0)
 
-const LinksForm = () => {
-
+const LinksForm = (props) => {
   const {
     values,
     submitState,
@@ -59,9 +58,10 @@ const LinksForm = () => {
       try {
         console.log("Submitting links")
         await submitWhatsappLinks(links)
-        console.log("Sumitted links OK")
-        onComplete({ok: true})
-      } catch(error) {
+        console.log('Sumitted links OK')
+        onComplete({ ok: true })
+        await props.onSubmit()
+      } catch (error) {
         console.error('Form submit error', error)
         onComplete({ok: false, error})
       }
@@ -78,6 +78,10 @@ const LinksForm = () => {
     <button type="submit" disabled={submitDisabled}>Comenzar</button>
     {submitError && submitState.error && <span className={"error"}>Ups, hubo un error: <code>{submitState.error.message || submitState.error}</code></span>}
   </form>
+}
+
+LinksForm.defaultProps = {
+  onSubmit: () => console.log('[LinksForm] default form submit'),
 }
 
 export default LinksForm
