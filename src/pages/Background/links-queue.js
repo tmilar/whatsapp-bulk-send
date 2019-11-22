@@ -33,7 +33,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       try {
         await _waitForTabCompleted(tab)
       } catch (error) {
-        reject('Tab did not open correctly' + ((error && error.message) || ''))
+        reject('Tab did not open correctly' + (error ? (error.message || error) : ''))
         return
       }
 
@@ -104,14 +104,20 @@ class LinkJob {
     error: null,
   }
 
-  constructor(link, index) {
+  constructor(link, index, onStatusUpdate) {
     this.url = link
     this.index = index
+    this.onStatusUpdate = onStatusUpdate
   }
 
   setState = state => {
     console.log(`[LinkJob] url '${this.url}' state change `, this.state, ' -> ', state)
     Object.assign(this.state, state)
+    if (typeof this.onStatusUpdate !== 'function') {
+      console.error('No onStatusUpdate method defined! ', this)
+      return
+    }
+    this.onStatusUpdate(state)
   }
 
   onUpdateStatusDetail = statusDetail => {
@@ -128,7 +134,7 @@ class LinkJob {
       this.endTimestamp = Date.now()
       this.setState({
         result: 'ERROR',
-        error: (error && error.message),
+        error: error ? (error.message || error) : '',
       })
       throw error
     }
@@ -137,44 +143,85 @@ class LinkJob {
 
 class LinksQueue {
   state = {
-    pause: false,
-    running: false,
+    // true after it has been started manually.
     started: false,
+    // process is running (ie. _run() is active). Opposite would be "asleep"
+    running: false,
+    // process finished all jobs.
     finished: false,
   }
 
   constructor(links = []) {
-    this.jobQueue = links.map((link, i) => new LinkJob(link, i))
+    this.jobQueue = links.map((link, i) => new LinkJob(link, i, this.notifyStatusUpdate))
+  }
+
+  static parse(linkQueueJson) {
+    const linkQueue = new LinksQueue()
+    // parse shallow props
+    Object.assign(linkQueue, linkQueueJson)
+
+    // parse jobQueue array
+    linkQueue.jobQueue = (linkQueueJson.jobQueue || []).map(linkJobJson => {
+      const linkJob = new LinkJob()
+      Object.assign(linkJob, linkJobJson)
+      linkJob.onStatusUpdate = linkQueue.notifyStatusUpdate
+      return linkJob
+    })
+
+    return linkQueue
+  }
+
+  setState = (state) => {
+    console.log(`[LinkQueue] queue state change `, this.state, ' -> ', state)
+    Object.assign(this.state, state)
+    this.notifyStatusUpdate(state)
+  }
+
+  notifyStatusUpdate = (update) => {
+    // dispatch message like this, because it's sent locally (from background to background)
+    const message = { type: 'update-queue', data: this, update }
+    const sender = { tab: null, id: chrome.runtime.id }
+    const sendResponse = () => {
+    }
+    chrome.runtime.onMessage.dispatch(message, sender, sendResponse)
   }
 
   start = () => {
     this._checkCanStart()
     console.log(`[LinksQueue] Starting queue (${this.jobQueue.length} jobs).`)
-    Object.assign(this.state, { started: true })
+    this._start()
     this._run()
   }
 
-  pause = () => {
-    this._checkCanPause()
-    Object.assign(this.state, { running: false, pause: true })
-  }
-
-  resume = () => {
-    this._checkCanResume()
-    Object.assign(this.state, { pause: false })
-  }
-
-  stop = () => {
-    this._checkCanStop()
-    this._finish()
+  _start = () => {
+    this.setState({ started: true })
   }
 
   _finish = () => {
-    Object.assign(this.state, { running: false, finished: true })
+    this.setState({ running: false, finished: true })
   }
 
-  _running = () => {
-    Object.assign(this.state, { running: true })
+  _running = (running = true) => {
+    Object.assign(this.state, { running })
+  }
+
+  _checkCanStart = () => {
+    if (this.state.finished) {
+      throw new Error('Job is already finished, can\'t start.') //TODO implement re-start
+    }
+
+    if (this.state.running) {
+      throw new Error('Job is already running, can\'t start.')
+    }
+
+    if (this.state.started) {
+      throw new Error('Job was already started!')
+    }
+
+    if (this.jobQueue.length === 0) {
+      console.log('[LinksQueue] Can\'t start, no links to process.')
+      throw new Error('Can\'t start queue, no links to process. Add some links first.')
+    }
   }
 
   /**
@@ -204,13 +251,7 @@ class LinksQueue {
       return
     }
 
-    if (this.state.pause) {
-      // job paused, poll to start again until resumed
-      setTimeout(() => this._run(), 500)
-      return
-    }
-
-    this._running()
+    this._running(true)
     const { index } = currentJob
     console.log(`[LinksQueue] starting job ${index}`, currentJob)
 
@@ -223,40 +264,6 @@ class LinksQueue {
         console.log(`[LinksQueue] job ${index} finished with error:`, error, currentJob, '. Continuing to next job...')
         setTimeout(() => this._run(), 1)
       })
-  }
-
-  _checkCanStart = () => {
-    if (this.state.finished) {
-      //TODO implement re-start
-      throw new Error('Job is already finished, can\'t start.')
-    }
-
-    if (this.state.running) {
-      throw new Error('Job is already running, can\'t start.')
-    }
-
-    if (this.jobQueue.length === 0) {
-      console.log('[LinksQueue] Can\'t start, no links to process.')
-      throw new Error('Can\'t start queue, no links to process.')
-    }
-  }
-
-  _checkCanPause = () => {
-    if (!this.state.running) {
-      throw new Error('Job is not running, can\'t pause')
-    }
-  }
-
-  _checkCanResume = () => {
-    if (this.state.running) {
-      throw new Error('Job is already running! Can\'t resume')
-    }
-  }
-
-  _checkCanStop = () => {
-    if (this.state.finished) {
-      throw new Error('Job is already finished! Can\'t stop.')
-    }
   }
 }
 

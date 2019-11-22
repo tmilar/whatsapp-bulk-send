@@ -11,19 +11,19 @@ chrome.browserAction.onClicked.addListener(() => {
   chrome.tabs.create({ url: bgPageUrl })
 })
 
-const getSavedLinks = () => new Promise((resolve, reject) =>
-  chrome.storage.sync.get('links', ({ links = [] }) => {
+const getSavedLinksQueue = () => new Promise((resolve, reject) =>
+  chrome.storage.sync.get('linksQueue', ({ linksQueue: linksQueueData = null }) => {
     if (chrome.runtime.error) {
       // error retrieving links
       return reject('runtime error: ' + chrome.runtime.error)
     }
-
-    resolve(links)
+    const linksQueue = LinksQueue.parse(linksQueueData)
+    resolve(linksQueue)
   }),
 )
 
-const handleSetLinksMessage = (data, sendResponse) => {
-  chrome.storage.sync.set({ links: data }, async () => {
+const saveLinksQueue = function(queue, sendResponse) {
+  chrome.storage.sync.set({ linksQueue: queue }, async () => {
 
     if (chrome.runtime.error) {
       // error saving links
@@ -33,14 +33,18 @@ const handleSetLinksMessage = (data, sendResponse) => {
 
     // check that links data are saved OK
     try {
-      const links = await getSavedLinks()
+      const linksQueue = await getSavedLinksQueue()
       // saved OK
-      console.log('Saved links: ', links)
+      console.log('Saved links queue: ', linksQueue)
       return sendResponse({ status: 200 })
     } catch (error) {
       return sendResponse({ status: 500, message: error })
     }
   })
+}
+const handleSetLinksMessage = (links, sendResponse) => {
+  const queue = new LinksQueue(links)
+  saveLinksQueue(queue, sendResponse)
 }
 
 const status = {
@@ -48,13 +52,16 @@ const status = {
 }
 
 const handleStartQueueMessage = (data, sendResponse) => {
-  getSavedLinks().then(links => {
-    const queue = new LinksQueue(links)
-    queue.start()
+  getSavedLinksQueue().then(linksQueue => {
+    linksQueue.start()
     sendResponse({ status: 200 })
   }).catch(error => {
-    sendResponse({ status: 500, message: error })
+    sendResponse({ status: 500, message: error ? (error.message || error) : '' })
   })
+}
+
+const handleUpdateQueueMessage = (linksQueue, sendResponse) => {
+  saveLinksQueue(linksQueue, sendResponse)
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -72,6 +79,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleStartQueueMessage(data, sendResponse)
     return true
   }
+
+  if (type === 'update-queue') {
+    console.log('message to update queue status', request.update)
+    handleUpdateQueueMessage(data, sendResponse)
+    return true
+  }
+
   sendResponse({ status: 404, message: `type ${type} not handled` })
   return true
 })
