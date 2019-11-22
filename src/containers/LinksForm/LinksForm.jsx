@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import useForm from '../../hooks/use-form'
 
 const submitWhatsappLinks = async links => {
-
   return new Promise((resolve, reject) =>
     chrome.runtime.sendMessage({ type: 'set-links', data: links }, (response = {}) => {
       if (chrome.runtime.error) {
@@ -11,7 +10,7 @@ const submitWhatsappLinks = async links => {
         return
       }
 
-      console.log('got response: ', response)
+      console.log('Message \'set-links\' got response: ', response)
 
       const { status, message } = response
       if (status !== 200) {
@@ -75,7 +74,7 @@ const LinksForm = (props) => {
   return <form className={'form'} onSubmit={handleSubmit}>
     <textarea name="links" value={values.links} onChange={handleChange} onBlur={handleBlur} onKeyDown={handleKeyDown}/>
     {!!linksCount && linksCount > 0 && <span>Total: {linksCount} links.</span>}
-    <button type="submit" disabled={submitDisabled}>Comenzar</button>
+    <button className={'button'} type="submit" disabled={submitDisabled}>Guardar</button>
     {submitError && submitState.error &&
     <span className={'error'}>Ups, hubo un error: <code>{submitState.error.message || submitState.error}</code></span>}
   </form>

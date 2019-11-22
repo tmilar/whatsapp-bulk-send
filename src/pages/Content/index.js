@@ -1,10 +1,14 @@
 import Whatsapp from './modules/whatsapp'
+
 const whatsapp = new Whatsapp()
+const state = {
+  channel: null
+}
 
 console.log('Content script loaded!')
 
-function sendUpdateNotification({status}) {
-  chrome.runtime.sendMessage({type: "update-link", data: {status}})
+function sendUpdateNotification({ status }) {
+  state.channel.postMessage({ type: 'update-link', data: { status } })
 }
 
 const pollUntilSentMessageReceived = () => {
@@ -62,5 +66,31 @@ const pollUntilMessageSent = () => {
   }, interval)
 }
 
-console.log("Start polling send")
-pollUntilMessageSent()
+
+const start = () => {
+  if (window.location.href.indexOf('https://web.whatsapp.com') < 0) {
+    console.log('Not whatsapp site. ')
+    return
+  }
+  console.log('Listening for connections')
+
+  chrome.runtime.onConnect.addListener(channel => {
+    if (channel.name !== 'channel-whatsapp-send') {
+      console.error('Unexpected connection request from channel', channel)
+      throw new Error('Unexpected connection request')
+    }
+
+    state.channel = channel
+
+    channel.onMessage.addListener((request, sender) => {
+      if (request.type !== 'start-whatsapp-send') {
+        console.log('Unexpected message: ', request, sender)
+        return
+      }
+
+      pollUntilMessageSent()
+    })
+  })
+}
+
+start()
