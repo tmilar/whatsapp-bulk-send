@@ -51,8 +51,19 @@ export default () => {
     submitBtn.click()
   }
 
+  const hasInvalidNumberError = () => {
+    const errorMessageBoxTextEl = getOneElementByXpath('//div[@data-animate-modal-body]/div[1]/text()')
+    if (errorMessageBoxTextEl) {
+      const { textContent: message } = errorMessageBoxTextEl
+      const invalidNumberErrorRegex = /inv[aá]lid/
+      return !!message.match(invalidNumberErrorRegex)
+    }
+    return false
+  }
+
   return {
     submitSendMessage,
     getLastSentMessage,
+    hasInvalidNumberError,
   }
 }

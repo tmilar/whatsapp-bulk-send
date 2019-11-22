@@ -33,7 +33,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       try {
         await _waitForTabCompleted(tab)
       } catch (error) {
-        reject('Tab did not open correctly' + (error.message || error || ''))
+        reject('Tab did not open correctly' + ((error && error.message) || ''))
         return
       }
 
@@ -128,7 +128,7 @@ class LinkJob {
       this.endTimestamp = Date.now()
       this.setState({
         result: 'ERROR',
-        error: error.message || error,
+        error: (error && error.message),
       })
       throw error
     }

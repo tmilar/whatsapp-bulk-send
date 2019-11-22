@@ -2,7 +2,7 @@ import Whatsapp from './modules/whatsapp'
 
 const whatsapp = new Whatsapp()
 const state = {
-  channel: null
+  channel: null,
 }
 
 console.log('Content script loaded!')
@@ -56,6 +56,14 @@ const pollUntilMessageSent = () => {
       console.log('Send message attempt failed, retrying. ', error)
     }
 
+    // check for invalid number error
+    if (whatsapp.hasInvalidNumberError()) {
+      console.log('Specified number is invalid')
+      sendUpdateNotification({ status: 'INVALID_NUMBER_ABORT' })
+      clearInterval(autoSend)
+    }
+
+    // check if maximum attempts exceeded
     tries++
     if (tries === maxTries) {
       console.log(`Maximum attemps (${tries}) reached, abort. `)
@@ -65,7 +73,6 @@ const pollUntilMessageSent = () => {
 
   }, interval)
 }
-
 
 const start = () => {
   if (window.location.href.indexOf('https://web.whatsapp.com') < 0) {
