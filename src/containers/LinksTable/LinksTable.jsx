@@ -70,7 +70,7 @@ const TableData = ({ links }) =>
       <td>{url}</td>
       <td className={getStatusClassName(result)}>{result ? i18n('result', result) : ''}</td>
       <td className={getStatusClassName(statusDetail)}>{i18n('statusDetail', statusDetail)}</td>
-      <td>{error}</td>
+      <td className={'link-error'}>{error}</td>
       <td>{(endTimestamp && startTimestamp) && elapsedTimeSecs(startTimestamp, endTimestamp)}</td>
     </tr>,
   )

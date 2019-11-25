@@ -64,6 +64,10 @@ td {
   vertical-align: top;
 }
 
+td.link-error {
+  color: gray;
+}
+
 .error {
   color: red;
 }
