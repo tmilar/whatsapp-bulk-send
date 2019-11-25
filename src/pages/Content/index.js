@@ -33,7 +33,7 @@ const pollUntilSentMessageReceived = () => {
     tries++
     if (tries === maxTries) {
       console.log(`Maximum attemps (${tries}) reached, abort. `)
-      sendUpdateNotification({ status: 'AFTER_SEND_ABORT' })
+      sendUpdateNotification({ status: 'SENT_CHECK_ABORT' })
       clearInterval(checkReceived)
     }
   }, interval)
