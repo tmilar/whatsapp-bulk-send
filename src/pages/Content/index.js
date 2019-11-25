@@ -16,7 +16,10 @@ const pollUntilSentMessageReceived = () => {
   const maxTries = 30
   const interval = 2000
   let prevStatus = null
-  console.log('Start polling until sent message is received', { maxTries, interval })
+  console.log('Start polling until sent message is received', {
+    maxTries,
+    interval,
+  })
   const checkReceived = setInterval(() => {
     const { message, status } = whatsapp.getLastSentMessage()
     if (status !== prevStatus) {
@@ -70,7 +73,6 @@ const pollUntilMessageSent = () => {
       sendUpdateNotification({ status: 'SEND_ABORT' })
       clearInterval(autoSend)
     }
-
   }, interval)
 }
 

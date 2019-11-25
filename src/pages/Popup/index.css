@@ -7,7 +7,7 @@ body {
 .form {
   width: 100%;
   display: flex;
-  flex-direction: column
+  flex-direction: column;
 }
 
 .form:first-child {
@@ -56,7 +56,8 @@ tbody > tr:nth-child(odd) {
   background: #fafafa;
 }
 
-td, th {
+td,
+th {
   padding: 5px;
 }
 

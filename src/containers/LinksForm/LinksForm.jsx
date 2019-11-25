@@ -10,7 +10,7 @@ const submitWhatsappLinks = async links => {
         return
       }
 
-      console.log('Message \'set-links\' got response: ', response)
+      console.log("Message 'set-links' got response: ", response)
 
       const { status, message } = response
       if (status !== 200) {
@@ -19,7 +19,7 @@ const submitWhatsappLinks = async links => {
         return
       }
       resolve()
-    }),
+    })
   )
 }
 
@@ -33,14 +33,8 @@ const handleKeyDown = e => {
 
 const parseLinks = links => links && links.split('\n').filter(l => l.length > 0)
 
-const LinksForm = (props) => {
-  const {
-    values,
-    submitState,
-    handleChange,
-    handleSubmit,
-    handleBlur,
-  } = useForm({
+const LinksForm = props => {
+  const { values, submitState, handleChange, handleSubmit, handleBlur } = useForm({
     initialValues: {
       links: '',
     },
@@ -71,13 +65,26 @@ const LinksForm = (props) => {
   const submitDisabled = submitState && submitState.loading
   const submitError = submitState && submitState.ok === false
 
-  return <form className={'form'} onSubmit={handleSubmit}>
-    <textarea name="links" value={values.links} onChange={handleChange} onBlur={handleBlur} onKeyDown={handleKeyDown}/>
-    {!!linksCount && linksCount > 0 && <span>Total: {linksCount} links.</span>}
-    <button className={'button'} type="submit" disabled={submitDisabled}>Guardar</button>
-    {submitError && submitState.error &&
-    <span className={'error'}>Ups, hubo un error: <code>{submitState.error.message || submitState.error}</code></span>}
-  </form>
+  return (
+    <form className={'form'} onSubmit={handleSubmit}>
+      <textarea
+        name="links"
+        value={values.links}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+      />
+      {!!linksCount && linksCount > 0 && <span>Total: {linksCount} links.</span>}
+      <button className={'button'} type="submit" disabled={submitDisabled}>
+        Guardar
+      </button>
+      {submitError && submitState.error && (
+        <span className={'error'}>
+          Ups, hubo un error: <code>{submitState.error.message || submitState.error}</code>
+        </span>
+      )}
+    </form>
+  )
 }
 
 LinksForm.defaultProps = {

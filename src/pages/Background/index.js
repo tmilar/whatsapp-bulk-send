@@ -11,20 +11,20 @@ chrome.browserAction.onClicked.addListener(() => {
   chrome.tabs.create({ url: bgPageUrl })
 })
 
-const getSavedLinksQueue = () => new Promise((resolve, reject) =>
-  chrome.storage.sync.get('linksQueue', ({ linksQueue: linksQueueData = null }) => {
-    if (chrome.runtime.error) {
-      // error retrieving links
-      return reject('runtime error: ' + chrome.runtime.error)
-    }
-    const linksQueue = LinksQueue.parse(linksQueueData)
-    resolve(linksQueue)
-  }),
-)
+const getSavedLinksQueue = () =>
+  new Promise((resolve, reject) =>
+    chrome.storage.sync.get('linksQueue', ({ linksQueue: linksQueueData = null }) => {
+      if (chrome.runtime.error) {
+        // error retrieving links
+        return reject('runtime error: ' + chrome.runtime.error)
+      }
+      const linksQueue = LinksQueue.parse(linksQueueData)
+      resolve(linksQueue)
+    })
+  )
 
 const saveLinksQueue = function(queue, sendResponse) {
   chrome.storage.sync.set({ linksQueue: queue }, async () => {
-
     if (chrome.runtime.error) {
       // error saving links
       console.log('runtime error: ', chrome.runtime.error)
@@ -52,12 +52,14 @@ const status = {
 }
 
 const handleStartQueueMessage = (data, sendResponse) => {
-  getSavedLinksQueue().then(linksQueue => {
-    linksQueue.start()
-    sendResponse({ status: 200 })
-  }).catch(error => {
-    sendResponse({ status: 500, message: error ? (error.message || error) : '' })
-  })
+  getSavedLinksQueue()
+    .then(linksQueue => {
+      linksQueue.start()
+      sendResponse({ status: 200 })
+    })
+    .catch(error => {
+      sendResponse({ status: 500, message: error ? error.message || error : '' })
+    })
 }
 
 const handleUpdateQueueMessage = (linksQueue, sendResponse) => {

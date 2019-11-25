@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import { useState } from 'react'
 
 const defaultValidate = values => ({})
 
@@ -12,7 +12,13 @@ const defaultValidate = values => ({})
  *
  * @return {{values, touchedValues, errors, submitState, handleChange: handleChange, handleSubmit: handleSubmit, handleBlur: handleBlur}}
  */
-const useForm = ({initialValues, onSubmit, onBlur, resetOnComplete = true, validate = defaultValidate}) => {
+const useForm = ({
+  initialValues,
+  onSubmit,
+  onBlur,
+  resetOnComplete = true,
+  validate = defaultValidate,
+}) => {
   const [values, setValues] = useState(initialValues || {})
   const [touchedValues, setTouchedValues] = useState({})
   const [errors, setErrors] = useState({})
@@ -25,18 +31,18 @@ const useForm = ({initialValues, onSubmit, onBlur, resetOnComplete = true, valid
 
     // if [name] field had error, and it stopped existing, then clear it.
     if (errors[name]) {
-      const e = validate({[name]: value})
+      const e = validate({ [name]: value })
       if (!e[name] || e[name] !== errors[name]) {
         setErrors({
           ...errors,
-          [name]: ''
+          [name]: '',
         })
       }
     }
 
     setValues({
       ...values,
-      [name]: value
+      [name]: value,
     })
   }
 
@@ -45,22 +51,22 @@ const useForm = ({initialValues, onSubmit, onBlur, resetOnComplete = true, valid
     const name = target.name
     setTouchedValues({
       ...touchedValues,
-      [name]: true
+      [name]: true,
     })
     const picked = Object.entries(values).filter(([key, value]) => key === name)
-    const pickedValue = picked[0] && {[picked[0][0]]: picked[0][1]}
+    const pickedValue = picked[0] && { [picked[0][0]]: picked[0][1] }
     const e = validate(pickedValue)
     setErrors({
       ...errors,
-      ...e
+      ...e,
     })
   }
 
-  const onComplete = ({ok = true, error} = {}) => {
+  const onComplete = ({ ok = true, error } = {}) => {
     if (ok && resetOnComplete) {
       setValues(initialValues)
     }
-    setSubmitState({ok, loading: false, error})
+    setSubmitState({ ok, loading: false, error })
   }
 
   const handleSubmit = event => {
@@ -68,7 +74,7 @@ const useForm = ({initialValues, onSubmit, onBlur, resetOnComplete = true, valid
     const e = validate(values)
     const errorsState = {
       ...errors,
-      ...e
+      ...e,
     }
     setErrors(errorsState)
 
@@ -82,7 +88,7 @@ const useForm = ({initialValues, onSubmit, onBlur, resetOnComplete = true, valid
     if (Object.values(errorsState).filter(Boolean).length > 0) {
       return
     }
-    setSubmitState({loading: true})
+    setSubmitState({ loading: true })
 
     onSubmit(values, e, onComplete)
   }
@@ -94,7 +100,7 @@ const useForm = ({initialValues, onSubmit, onBlur, resetOnComplete = true, valid
     submitState,
     handleChange,
     handleSubmit,
-    handleBlur
+    handleBlur,
   }
 }
 

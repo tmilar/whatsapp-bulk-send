@@ -33,7 +33,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       try {
         await _waitForTabCompleted(tab)
       } catch (error) {
-        reject('Tab did not open correctly' + (error ? (error.message || error) : ''))
+        reject('Tab did not open correctly' + (error ? error.message || error : ''))
         return
       }
 
@@ -49,7 +49,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       // send first start message
       channel.postMessage({ type: 'start-whatsapp-send' })
       if (chrome.runtime.lastError) {
-        console.log('Error sending message \'start-whatsapp-send\'', chrome.runtime.lastError)
+        console.log("Error sending message 'start-whatsapp-send'", chrome.runtime.lastError)
         reject(chrome.runtime.lastError)
         return
       }
@@ -79,7 +79,9 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
         console.log('Updating link status', data)
         onUpdateStatusDetail(status)
 
-        const isFinishStatus = status.indexOf('ABORT') >= 0 || status === 'SENT' || status === 'SENT_RECEIVED'
+        const isFinishStatus =
+          status.indexOf('ABORT') >= 0 || status === 'SENT' || status === 'SENT_RECEIVED'
+
         if (isFinishStatus) {
           console.log('Finish status', status)
           channel.onDisconnect.removeListener(onDisconnectHandler)
@@ -135,7 +137,7 @@ class LinkJob {
       this.endTimestamp = Date.now()
       this.setState({
         result: 'ERROR',
-        error: error ? (error.message || error) : '',
+        error: error ? error.message || error : '',
       })
       throw error
     }
@@ -172,18 +174,17 @@ class LinksQueue {
     return linkQueue
   }
 
-  setState = (state) => {
+  setState = state => {
     console.log(`[LinkQueue] queue state change `, this.state, ' -> ', state)
     Object.assign(this.state, state)
     this.notifyStatusUpdate(state)
   }
 
-  notifyStatusUpdate = (update) => {
+  notifyStatusUpdate = update => {
     // dispatch message like this, because it's sent locally (from background to background)
     const message = { type: 'update-queue', data: this, update }
     const sender = { tab: null, id: chrome.runtime.id }
-    const sendResponse = () => {
-    }
+    const sendResponse = () => {}
     chrome.runtime.onMessage.dispatch(message, sender, sendResponse)
   }
 
@@ -208,11 +209,11 @@ class LinksQueue {
 
   _checkCanStart = () => {
     if (this.state.finished) {
-      throw new Error('Job is already finished, can\'t start.') //TODO implement re-start
+      throw new Error("Job is already finished, can't start.") //TODO implement re-start
     }
 
     if (this.state.running) {
-      throw new Error('Job is already running, can\'t start.')
+      throw new Error("Job is already running, can't start.")
     }
 
     if (this.state.started) {
@@ -220,8 +221,8 @@ class LinksQueue {
     }
 
     if (this.jobQueue.length === 0) {
-      console.log('[LinksQueue] Can\'t start, no links to process.')
-      throw new Error('Can\'t start queue, no links to process. Add some links first.')
+      console.log("[LinksQueue] Can't start, no links to process.")
+      throw new Error("Can't start queue, no links to process. Add some links first.")
     }
   }
 
@@ -256,13 +257,23 @@ class LinksQueue {
     const { index } = currentJob
     console.log(`[LinksQueue] starting job ${index}`, currentJob)
 
-    currentJob.process()
+    currentJob
+      .process()
       .then(() => {
-        console.log(`[LinksQueue] job ${index} completed succesfully`, currentJob, '. Continuing to next job...')
+        console.log(
+          `[LinksQueue] job ${index} completed succesfully`,
+          currentJob,
+          '. Continuing to next job...'
+        )
         setTimeout(() => this._run(), 1)
       })
       .catch(error => {
-        console.log(`[LinksQueue] job ${index} finished with error:`, error, currentJob, '. Continuing to next job...')
+        console.log(
+          `[LinksQueue] job ${index} finished with error:`,
+          error,
+          currentJob,
+          '. Continuing to next job...'
+        )
         setTimeout(() => this._run(), 1)
       })
   }
