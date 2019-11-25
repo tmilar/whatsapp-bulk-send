@@ -126,6 +126,7 @@ class LinkJob {
 
   process = async () => {
     this.startTimestamp = Date.now()
+    this.onUpdateStatusDetail('STARTING')
     try {
       await processWhatsappLink(this.url, this.onUpdateStatusDetail)
       this.endTimestamp = Date.now()

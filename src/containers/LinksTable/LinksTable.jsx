@@ -19,13 +19,38 @@ function roundNumber(num, scale) {
 
 const elapsedTimeSecs = (start, end) => `${roundNumber((end - start) / 1000, 1)} seg`
 
+const linkClassNames = {
+  success: 'success',
+  error: 'error',
+  inProgress: 'in-progress',
+}
+
+function getStatusClassName(statusValue) {
+  if (!statusValue || statusValue.length === 0) {
+    return ''
+  }
+  const { success, error, inProgress } = linkClassNames
+  const statusValueContainsAny = (...keywords) => keywords.some(k => statusValue.indexOf(k) >= 0)
+
+  if (statusValueContainsAny('SENT', 'SUCCESS')) {
+    return success
+  }
+  if (statusValueContainsAny('ERROR', 'ABORT')) {
+    return error
+  }
+  if (statusValueContainsAny('PROGRESS', 'WAIT')) {
+    return inProgress
+  }
+  return ''
+}
+
 const TableData = ({ links }) =>
   links.map(({ index, url, state: { result, statusDetail, error }, startTimestamp, endTimestamp }, i) =>
     <tr key={`link-table-row_${i}_${url}`}>
-      <td>{index}</td>
+      <td>{index + 1}</td>
       <td>{url}</td>
-      <td>{result}</td>
-      <td>{statusDetail}</td>
+      <td className={getStatusClassName(result)}>{result || '...'}</td>
+      <td className={getStatusClassName(statusDetail)}>{statusDetail}</td>
       <td>{error}</td>
       <td>{(endTimestamp && startTimestamp) && elapsedTimeSecs(startTimestamp, endTimestamp)}</td>
     </tr>,
@@ -37,10 +62,21 @@ export default ({ linksQueue }) =>
   <>
     <span>Estado: {linksQueue && (<b>{getActiveStatuses(linksQueue)}</b>)}</span>
     <br/>
-    <table>
+    <table border="0" cellSpacing="0" cellPadding="0">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Link</th>
+        <th>Resultado</th>
+        <th>Detalle</th>
+        <th>Comentarios</th>
+        <th>Duración</th>
+      </tr>
+      </thead>
       <tbody>
-      {(!linksQueue || linksQueue.jobQueue.length === 0) ? <EmptyDataMessage/> :
-        <TableData links={linksQueue.jobQueue}/>}
+      {(!linksQueue || linksQueue.jobQueue.length === 0) ?
+        <EmptyDataMessage/> : <TableData links={linksQueue.jobQueue}/>
+      }
       </tbody>
     </table>
   </>
