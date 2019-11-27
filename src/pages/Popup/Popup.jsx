@@ -5,7 +5,7 @@ import LinksTable from '../../containers/LinksTable/LinksTable'
 
 const fetchLinksQueue = () =>
   new Promise((resolve, reject) =>
-    chrome.storage.sync.get('linksQueue', ({ linksQueue = null }) => {
+    chrome.storage.local.get('linksQueue', ({ linksQueue = null }) => {
       if (chrome.runtime.lastError) {
         const errorMsg = `get linksQueue chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
         console.log(errorMsg)
