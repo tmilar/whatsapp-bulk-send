@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-bulk-send-ext",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Send whatsapp messages in bulk. Built with React 16 and Webpack 4",
   "license": "MIT",
   "repository": {
