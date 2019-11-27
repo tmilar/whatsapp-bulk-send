@@ -37,8 +37,11 @@ export default () => {
     const statusIcon = lastSentMessageStatus.getAttribute('data-icon')
     const statusIcons = {
       'msg-dblcheck': 'SENT_RECEIVED',
+      'msg-dblcheck-ack': 'SENT_RECEIVED',
       'msg-check': 'SENT',
+      'msg-check-ack': 'SENT',
       'msg-time': 'WAITING',
+      'msg-time-ack': 'WAITING',
     }
     const status = statusIcons[statusIcon]
 
