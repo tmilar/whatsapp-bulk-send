@@ -1,14 +1,14 @@
 {
-  "name": "Whatsapp Bulk Sender",
+  "name": "Wazzaabot",
   "version": "0.0.1",
-  "description": "Send whatsapp messages in bulk",
+  "description": "Envio de mensajes masivos por Whatsapp Web",
   "manifest_version": 2,
   "background": {
     "page": "background.html"
   },
   "browser_action": {
     "default_icon": "icon-34.png",
-    "default_title": "Whatsapp Sender"
+    "default_title": "Wazzaabot"
   },
   "icons": {
     "128": "icon-128.png"
