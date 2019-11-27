@@ -37,7 +37,7 @@ body {
   filter: brightness(1.1);
 }
 
-.button:disabled {
+.submitQueue.button:disabled {
   background: forestgreen;
   color: white;
   cursor: wait;
@@ -83,4 +83,37 @@ td.link-error {
 
 .in-progress {
   color: darkgoldenrod;
+}
+
+.action-buttons {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: row;
+}
+
+.action-buttons .button {
+  margin-right: 10px;
+}
+
+.button.start {
+  background: lightcoral
+}
+
+.button.pause {
+  background: #ffc200;
+}
+
+.button.stop {
+  background: red;
+}
+
+.button.resume {
+  background: lightgreen;
+}
+
+.button:disabled {
+  filter: grayscale(1);
+  box-shadow: 1px 2px 4px #bbb;
+  color: white;
+  cursor: not-allowed;
 }

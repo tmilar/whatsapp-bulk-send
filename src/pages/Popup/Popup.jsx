@@ -2,6 +2,7 @@ import React, { Component, useCallback, useEffect, useState } from 'react'
 import './Popup.css'
 import LinksForm from '../../containers/LinksForm/LinksForm'
 import LinksTable from '../../containers/LinksTable/LinksTable'
+import LinksQueueActionButtons from '../../containers/LinksQueueActionButtons/LinksQueueActionButtons'
 
 const fetchLinksQueue = () =>
   new Promise((resolve, reject) =>
@@ -16,11 +17,11 @@ const fetchLinksQueue = () =>
     }),
   )
 
-const requestQueueStart = () =>
+const requestQueueOperation = ({ type }) =>
   new Promise((resolve, reject) =>
-    chrome.runtime.sendMessage({ type: 'start' }, ({ status, message }) => {
+    chrome.runtime.sendMessage({ type }, ({ status, message }) => {
       if (chrome.runtime.lastError) {
-        const errorMsg = `requestQueueStart chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
+        const errorMsg = `requestQueueOperation '${type}' chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
         console.log(errorMsg)
         reject(errorMsg)
         return
@@ -52,8 +53,8 @@ const Popup = () => {
     // first sync
     syncLinksQueue()
 
-    // set re-sync after every 5 secs
-    const resyncInterval = 3000
+    // set re-sync after every 2 secs
+    const resyncInterval = 2000
     const interval = setInterval(() => {
       return syncLinksQueue()
     }, resyncInterval)
@@ -61,18 +62,44 @@ const Popup = () => {
     return () => clearInterval(interval)
   }, [])
 
+  const requestQueueStatusUpdate = ({ type, onSuccessMsg, onErrorMsg }) =>
+    requestQueueOperation({ type })
+      .then(() => setQueueStatus({ message: onSuccessMsg }))
+      .catch(error => setQueueStatus({ message: onErrorMsg(error) }))
+
   const queueStart = () =>
-    requestQueueStart()
-      .then(() => setQueueStatus({ status: 'RUNNING', message: 'Comenzado' }))
-      .catch(error => {
-        setQueueStatus({
-          status: 'ERROR',
-          message: `No se pudo empezar. ${error ? error.message || error : ''}`,
-        })
-      })
+    requestQueueStatusUpdate({
+      type: 'start',
+      onSuccessMsg: 'Comenzado!',
+      onErrorMsg: error => `No se pudo empezar. ${error ? error.message || error : ''}`,
+    })
+
+  const queuePause = () =>
+    requestQueueStatusUpdate({
+      type: 'pause',
+      onSuccessMsg: 'En pausa',
+      onErrorMsg: error => `No se pudo pausar. ${error ? error.message || error : ''}`,
+    })
+
+  const queueResume = () =>
+    requestQueueStatusUpdate({
+      type: 'resume',
+      onSuccessMsg: 'Continuando',
+      onErrorMsg: error => `No se pudo continuar. ${error ? error.message || error : ''}`,
+    })
+
+  const queueStop = () =>
+    requestQueueStatusUpdate({
+      type: 'stop',
+      onSuccessMsg: 'Finalizado',
+      onErrorMsg: error => `No se pudo finalizar. ${error ? error.message || error : ''}`,
+    })
 
   const syncLinksQueueCallback = useCallback(syncLinksQueue, [])
-  const handleStartButtonClick = useCallback(queueStart, [])
+  const handleQueueStartAction = useCallback(queueStart, [])
+  const handleQueuePauseAction = useCallback(queuePause, [])
+  const handleQueueResumeAction = useCallback(queueResume, [])
+  const handleQueueStopAction = useCallback(queueStop, [])
 
   return (
     <div>
@@ -88,13 +115,14 @@ const Popup = () => {
       >
         <LinksForm onSubmit={syncLinksQueueCallback}/>
       </div>
-      <button
-        className={'button'}
-        style={{ background: 'lightcoral' }}
-        onClick={handleStartButtonClick}
-      >
-        Comenzar
-      </button>
+      {linksQueue &&
+      <LinksQueueActionButtons queue={linksQueue}
+                               onStartAction={handleQueueStartAction}
+                               onPauseAction={handleQueuePauseAction}
+                               onStopAction={handleQueueStopAction}
+                               onResumeAction={handleQueueResumeAction}
+      />
+      }
       {queueStatus && (
         <>
           <br/>

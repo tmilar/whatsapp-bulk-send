@@ -49,7 +49,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       // send first start message
       channel.postMessage({ type: 'start-whatsapp-send' })
       if (chrome.runtime.lastError) {
-        console.log("Error sending message 'start-whatsapp-send'", chrome.runtime.lastError)
+        console.log('Error sending message \'start-whatsapp-send\'', chrome.runtime.lastError)
         reject(chrome.runtime.lastError)
         return
       }
@@ -148,10 +148,14 @@ class LinksQueue {
   state = {
     // true after it has been started manually.
     started: false,
+    // user paused the queue.
+    paused: false,
     // process is running (ie. _run() is active). Opposite would be "asleep"
     running: false,
     // process finished all jobs.
     finished: false,
+    // process has been stopped manually.
+    stopped: false,
   }
 
   constructor(links = []) {
@@ -184,7 +188,8 @@ class LinksQueue {
     // dispatch message like this, because it's sent locally (from background to background)
     const message = { type: 'update-queue', data: this, update }
     const sender = { tab: null, id: chrome.runtime.id }
-    const sendResponse = () => {}
+    const sendResponse = () => {
+    }
     chrome.runtime.onMessage.dispatch(message, sender, sendResponse)
   }
 
@@ -195,8 +200,36 @@ class LinksQueue {
     this._run()
   }
 
+  pause = () => {
+    this._checkCanPause()
+    this._pause()
+  }
+
+  resume = () => {
+    this._checkCanResume()
+    this._resume()
+    this._run()
+  }
+
+  stop = () => {
+    this._checkCanStop()
+    this._stop()
+  }
+
   _start = () => {
     this.setState({ started: true })
+  }
+
+  _pause = () => {
+    this.setState({ running: false, paused: true })
+  }
+
+  _resume = () => {
+    this.setState({ paused: false })
+  }
+
+  _stop = () => {
+    this.setState({ running: false, paused: false, stopped: true })
   }
 
   _finish = () => {
@@ -209,11 +242,15 @@ class LinksQueue {
 
   _checkCanStart = () => {
     if (this.state.finished) {
-      throw new Error("Job is already finished, can't start.") //TODO implement re-start
+      throw new Error('Job is already finished, can\'t start.')
+    }
+
+    if (this.state.stopped) {
+      throw new Error('Job has been stopped manually, can\'t start')
     }
 
     if (this.state.running) {
-      throw new Error("Job is already running, can't start.")
+      throw new Error('Job is already running, can\'t start.')
     }
 
     if (this.state.started) {
@@ -221,8 +258,46 @@ class LinksQueue {
     }
 
     if (this.jobQueue.length === 0) {
-      console.log("[LinksQueue] Can't start, no links to process.")
-      throw new Error("Can't start queue, no links to process. Add some links first.")
+      console.log('[LinksQueue] Can\'t start, no links to process.')
+      throw new Error('Can\'t start queue, no links to process. Add some links first.')
+    }
+  }
+
+  _checkCanPause = () => {
+    if (!this.state.running) {
+      throw new Error('Job is not running, can\'t pause')
+    }
+  }
+
+  /**
+   * Only can resume when job is paused.
+   * @private
+   */
+  _checkCanResume = () => {
+    if (this.state.running) {
+      throw new Error('Job is already running! Can\'t resume')
+    }
+    if (!this.state.paused) {
+      throw new Error('Job is not paused, can\'t resume')
+    }
+    if (this.state.finished) {
+      throw new Error('Job is already finished, can\'t resume')
+    }
+  }
+
+  /**
+   * Only can be stopped if running or paused
+   * @private
+   */
+  _checkCanStop = () => {
+    if (this.state.finished) {
+      throw new Error('Job has already finished! Nothing to stop.')
+    }
+    if (this.state.stopped) {
+      throw new Error('Job has already been stopped.')
+    }
+    if (!this.state.running && !this.state.paused) {
+      throw new Error('Job can only be stopped when running or paused.')
     }
   }
 
@@ -247,12 +322,22 @@ class LinksQueue {
       this._finish()
       return
     }
+    const { finished, stopped, paused } = this.state
 
-    if (this.state.finished) {
+    if (finished || stopped) {
+      const stateStr = finished ? 'finished' : 'been stopped'
+      console.log(`[LinksQueue] Job Queue has ${stateStr}.`)
       // job was finished externally - return to break the chain
       return
     }
 
+    if (paused) {
+      console.log('[LinksQueue] Job Queue has been paused, waiting for resume.')
+      // job paused, can't continue
+      return
+    }
+
+    // continuing -> re-set 'running' to true
     this._running(true)
     const { index } = currentJob
     console.log(`[LinksQueue] starting job ${index}`, currentJob)
@@ -263,7 +348,7 @@ class LinksQueue {
         console.log(
           `[LinksQueue] job ${index} completed succesfully`,
           currentJob,
-          '. Continuing to next job...'
+          '. Continuing to next job...',
         )
         setTimeout(() => this._run(), 1)
       })
@@ -272,7 +357,7 @@ class LinksQueue {
           `[LinksQueue] job ${index} finished with error:`,
           error,
           currentJob,
-          '. Continuing to next job...'
+          '. Continuing to next job...',
         )
         setTimeout(() => this._run(), 1)
       })

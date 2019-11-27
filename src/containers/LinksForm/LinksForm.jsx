@@ -11,7 +11,7 @@ const submitWhatsappLinks = async links => {
         return
       }
 
-      console.log("Message 'set-links' got response: ", response)
+      console.log('Message \'set-links\' got response: ', response)
 
       const { status, message } = response
       if (status !== 200) {
@@ -20,7 +20,7 @@ const submitWhatsappLinks = async links => {
         return
       }
       resolve()
-    })
+    }),
   )
 }
 
@@ -76,7 +76,7 @@ const LinksForm = props => {
         onKeyDown={handleKeyDown}
       />
       {!!linksCount && linksCount > 0 && <span>Total: {linksCount} links.</span>}
-      <button className={'button'} type="submit" disabled={submitDisabled}>
+      <button className={'button submitQueue'} type="submit" disabled={submitDisabled}>
         Guardar
       </button>
       {submitError && submitState.error && (

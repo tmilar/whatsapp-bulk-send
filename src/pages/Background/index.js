@@ -23,7 +23,7 @@ const getSavedLinksQueue = () =>
 
       const linksQueue = LinksQueue.parse(linksQueueData)
       resolve(linksQueue)
-    })
+    }),
   )
 
 const saveLinksQueue = function(queue, sendResponse) {
@@ -45,52 +45,66 @@ const saveLinksQueue = function(queue, sendResponse) {
     }
   })
 }
+
+const state = {
+  currentQueue: null,
+}
+
+// startup: fetch saved queue data
+getSavedLinksQueue()
+  .then(queue => {
+    console.log('Startup: retrieving saved queue data: ', queue)
+    state.currentQueue = queue
+  })
+  .catch(error => console.error('Could not retrieve saved queue data', error))
+
 const handleSetLinksMessage = (links, sendResponse) => {
   const queue = new LinksQueue(links)
+  state.currentQueue = queue
   saveLinksQueue(queue, sendResponse)
 }
 
-const status = {
-  queue: null,
+async function runOnCurrentQueue(applyOnQueue) {
+  if (!state.currentQueue) {
+    throw new Error('Can\'t run operation, the current queue has not been loaded yet')
+  }
+  return applyOnQueue(state.currentQueue)
 }
 
-const handleStartQueueMessage = (data, sendResponse) => {
-  getSavedLinksQueue()
-    .then(linksQueue => {
-      linksQueue.start()
-      sendResponse({ status: 200 })
-    })
+const handleOperationOnQueueMessage = (operation, sendResponse) => {
+  runOnCurrentQueue(operation)
+    .then(() => sendResponse({ status: 200 }))
     .catch(error => {
-      sendResponse({ status: 500, message: error ? error.message || error : '' })
+      const message = error ? error.message || error : ''
+      console.log(`Error for operation: '${operation.toString()}'. ${message}`)
+      sendResponse({ status: 500, message })
     })
 }
 
-const handleUpdateQueueMessage = (linksQueue, sendResponse) => {
+const handleUpdatedQueueMessage = (linksQueue, sendResponse) => {
+  console.log('message to save updated queue status')
   saveLinksQueue(linksQueue, sendResponse)
+}
+
+const messageHandler = {
+  'set-links': ({ data, sendResponse }) => handleSetLinksMessage(data, sendResponse),
+  'update-queue': ({ data, sendResponse }) => handleUpdatedQueueMessage(data, sendResponse),
+  start: ({ sendResponse }) => handleOperationOnQueueMessage(queue => queue.start(), sendResponse),
+  pause: ({ sendResponse }) => handleOperationOnQueueMessage(queue => queue.pause(), sendResponse),
+  resume: ({ sendResponse }) => handleOperationOnQueueMessage(queue => queue.resume(), sendResponse),
+  stop: ({ sendResponse }) => handleOperationOnQueueMessage(queue => queue.stop(), sendResponse),
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const { type, data } = request
-  console.log('Background onMessage', request)
+  console.log(`Background onMessage type '${type}'`, request)
 
-  if (type === 'set-links') {
-    console.log('message to save links', data)
-    handleSetLinksMessage(data, sendResponse)
+  const handler = messageHandler[type]
+  if (!handler) {
+    sendResponse({ status: 404, message: `message type '${type}' not handled` })
     return true
   }
 
-  if (type === 'start') {
-    console.log('message to start queue')
-    handleStartQueueMessage(data, sendResponse)
-    return true
-  }
-
-  if (type === 'update-queue') {
-    console.log('message to update queue status', request.update)
-    handleUpdateQueueMessage(data, sendResponse)
-    return true
-  }
-
-  sendResponse({ status: 404, message: `type ${type} not handled` })
+  handler({ data, sendResponse })
   return true
 })
