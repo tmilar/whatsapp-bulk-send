@@ -7,14 +7,34 @@ const state = {
 
 console.log('Content script loaded!')
 
+function inject(fn) {
+  const script = document.createElement('script')
+  script.text = `(${fn.toString()})();`
+  document.documentElement.appendChild(script)
+
+  // display which methods have been added to window
+  const regex = /window\.(\w+)/gm
+  const fns = []
+  let matches
+  while (matches = regex.exec(script.text)) {
+    fns.push(matches[1])
+  }
+  if (fns.length) {
+    console.log('Injected functions to window: ', fns)
+  }
+}
+
+// embed msg sender
+inject(Whatsapp)
+
 function sendUpdateNotification({ status }) {
   state.channel.postMessage({ type: 'update-link', data: { status } })
 }
 
 const pollUntilSentMessageReceived = () => {
   let tries = 0
-  const maxTries = 30
-  const interval = 2000
+  const maxTries = 45
+  const interval = 1000
   let prevStatus = null
   console.log('Start polling until sent message is received', {
     maxTries,
