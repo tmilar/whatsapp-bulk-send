@@ -61,6 +61,10 @@ th {
   padding: 5px;
 }
 
+td[colspan="100%"] {
+  text-align: center;
+}
+
 td {
   vertical-align: top;
 }

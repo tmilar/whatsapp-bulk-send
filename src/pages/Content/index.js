@@ -26,9 +26,9 @@ const pollUntilSentMessageReceived = () => {
       sendUpdateNotification({ status })
     }
     if (status === 'SENT_RECEIVED') {
+      // last possible status, finish update polling.
       console.log('Message received!')
       clearInterval(checkReceived)
-      // close tab???
       return
     }
     console.log('Sent message status: ', status)

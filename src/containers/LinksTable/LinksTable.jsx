@@ -2,7 +2,7 @@ import React from 'react'
 
 const EmptyDataMessage = () => (
   <tr>
-    <td>
+    <td colSpan="100%">
       <i>No hay links en proceso.</i>
     </td>
   </tr>
@@ -36,13 +36,13 @@ function getStatusClassName(statusValue) {
   const { success, error, inProgress } = linkClassNames
   const statusValueContainsAny = (...keywords) => keywords.some(k => statusValue.indexOf(k) >= 0)
 
-  if (statusValueContainsAny('SENT', 'SUCCESS')) {
+  if (statusValueContainsAny('SENT', 'SUCCESS', 'WAITING')) {
     return success
   }
   if (statusValueContainsAny('ERROR', 'ABORT')) {
     return error
   }
-  if (statusValueContainsAny('PROGRESS', 'WAIT')) {
+  if (statusValueContainsAny('PROGRESS')) {
     return inProgress
   }
   return ''
@@ -56,8 +56,9 @@ const i18nValues = {
   statusDetail: {
     STARTING: 'Iniciando...',
     IN_PROGRESS: 'En progreso',
+    WAITING: 'Enviado',
     SENT: 'Enviado',
-    SENT_RECEIVED: 'Enviado y Recibido',
+    SENT_RECEIVED: 'Enviado',
     INVALID_NUMBER_ABORT: 'El número es inválido',
     SEND_ABORT: 'No se pudo enviar',
     SENT_CHECK_ABORT: 'No se pudo verificar recepción del mensaje',

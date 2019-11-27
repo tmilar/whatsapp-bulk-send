@@ -80,7 +80,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
         onUpdateStatusDetail(status)
 
         const isFinishStatus =
-          status.indexOf('ABORT') >= 0 || status === 'SENT' || status === 'SENT_RECEIVED'
+          status.indexOf('ABORT') >= 0 || status === 'WAIT' || status === 'SENT' || status === 'SENT_RECEIVED'
 
         if (isFinishStatus) {
           console.log('Finish status', status)
