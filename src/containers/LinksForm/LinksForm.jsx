@@ -4,9 +4,10 @@ import useForm from '../../hooks/use-form'
 const submitWhatsappLinks = async links => {
   return new Promise((resolve, reject) =>
     chrome.runtime.sendMessage({ type: 'set-links', data: links }, (response = {}) => {
-      if (chrome.runtime.error) {
-        console.log('chrome.runtime.error', chrome.runtime.error)
-        reject(chrome.runtime.error)
+      if (chrome.runtime.lastError) {
+        const errorMsg = `chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
+        console.log(errorMsg)
+        reject(errorMsg)
         return
       }
 

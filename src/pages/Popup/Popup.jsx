@@ -6,20 +6,24 @@ import LinksTable from '../../containers/LinksTable/LinksTable'
 const fetchLinksQueue = () =>
   new Promise((resolve, reject) =>
     chrome.storage.sync.get('linksQueue', ({ linksQueue = null }) => {
-      if (chrome.runtime.error) {
-        console.log('fetchLinksQueue chrome.runtime.error', chrome.runtime.error)
-        return reject(chrome.runtime.error)
+      if (chrome.runtime.lastError) {
+        const errorMsg = `get linksQueue chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
+        console.log(errorMsg)
+        reject(errorMsg)
+        return
       }
       return resolve(linksQueue)
-    })
+    }),
   )
 
 const requestQueueStart = () =>
   new Promise((resolve, reject) =>
     chrome.runtime.sendMessage({ type: 'start' }, ({ status, message }) => {
       if (chrome.runtime.lastError) {
-        console.log('requestQueueStart chrome.runtime.lastError', chrome.runtime.lastError)
-        return reject(chrome.runtime.lastError)
+        const errorMsg = `requestQueueStart chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
+        console.log(errorMsg)
+        reject(errorMsg)
+        return
       }
 
       if (status !== 200) {
@@ -27,7 +31,7 @@ const requestQueueStart = () =>
         return
       }
       return resolve()
-    })
+    }),
   )
 
 const Popup = () => {
@@ -82,7 +86,7 @@ const Popup = () => {
           flexDirection: 'column',
         }}
       >
-        <LinksForm onSubmit={syncLinksQueueCallback} />
+        <LinksForm onSubmit={syncLinksQueueCallback}/>
       </div>
       <button
         className={'button'}
@@ -93,12 +97,12 @@ const Popup = () => {
       </button>
       {queueStatus && (
         <>
-          <br />
+          <br/>
           <span>{queueStatus.message}</span>
         </>
       )}
       <h2>Links actuales:</h2>
-      <LinksTable linksQueue={linksQueue} />
+      <LinksTable linksQueue={linksQueue}/>
     </div>
   )
 }

@@ -14,10 +14,13 @@ chrome.browserAction.onClicked.addListener(() => {
 const getSavedLinksQueue = () =>
   new Promise((resolve, reject) =>
     chrome.storage.sync.get('linksQueue', ({ linksQueue: linksQueueData = null }) => {
-      if (chrome.runtime.error) {
-        // error retrieving links
-        return reject('runtime error: ' + chrome.runtime.error)
+      if (chrome.runtime.lastError) {
+        const errorMsg = `get linksQueue chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
+        console.log(errorMsg)
+        reject(errorMsg)
+        return
       }
+
       const linksQueue = LinksQueue.parse(linksQueueData)
       resolve(linksQueue)
     })
@@ -25,10 +28,10 @@ const getSavedLinksQueue = () =>
 
 const saveLinksQueue = function(queue, sendResponse) {
   chrome.storage.sync.set({ linksQueue: queue }, async () => {
-    if (chrome.runtime.error) {
-      // error saving links
-      console.log('runtime error: ', chrome.runtime.error)
-      return sendResponse({ status: 500, message: chrome.runtime.error })
+    if (chrome.runtime.lastError) {
+      const errorMsg = `set linksQueue chrome.runtime.lastError: ${chrome.runtime.lastError.message}`
+      console.log(errorMsg)
+      return sendResponse({ status: 500, message: errorMsg })
     }
 
     // check that links data are saved OK
