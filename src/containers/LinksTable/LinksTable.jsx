@@ -73,13 +73,18 @@ const TableData = ({ links }) =>
     ({ index, url, state: { result, statusDetail, error }, startTimestamp, endTimestamp }, i) => (
       <tr key={`link-table-row_${i}_${url}`}>
         <td>{index + 1}</td>
-        <td>{url}</td>
+        <td>
+          <div className={'ellipsis multiline-wrap'}>
+            <div>{url}</div>
+          </div>
+
+        </td>
         <td className={getStatusClassName(result)}>{result ? i18n('result', result) : ''}</td>
         <td className={getStatusClassName(statusDetail)}>{i18n('statusDetail', statusDetail)}</td>
         <td className={'link-error'}>{error}</td>
         <td>{endTimestamp && startTimestamp && elapsedTimeSecs(startTimestamp, endTimestamp)}</td>
       </tr>
-    )
+    ),
   )
 
 const getActiveStatuses = ({ state } = {}) =>
