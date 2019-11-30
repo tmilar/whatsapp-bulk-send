@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
-const EmptyDataMessage = () => (
+const EmptyDataMessage = ({ loading }) => (
   <tr>
     <td colSpan="100%">
-      <i>No hay links en proceso.</i>
+      <i>{loading ? 'Recuperando links guardados...' : 'No hay links en proceso.'}</i>
     </td>
   </tr>
 )
@@ -136,7 +136,7 @@ const copyingStates = {
   COPIED: 'Copiado!',
 }
 
-export default ({ linksQueue }) => {
+export default ({ linksQueue, loading }) => {
   const [copying, setCopying] = useState(copyingStates.DEFAULT)
 
   useEffect(() => {
@@ -175,11 +175,11 @@ export default ({ linksQueue }) => {
       </thead>
       <tbody>
       {linksQueueEmpty ? (
-        <EmptyDataMessage/>
+        <EmptyDataMessage loading={loading}/>
       ) : (
         <TableData links={linksQueue.jobQueue}/>
       )}
       </tbody>
     </table>
   </>
-)
+}

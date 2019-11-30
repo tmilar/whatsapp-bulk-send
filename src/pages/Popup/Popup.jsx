@@ -38,6 +38,7 @@ const requestQueueOperation = ({ type }) =>
 const Popup = () => {
   const [linksQueue, setLinksQueue] = useState(null)
   const [queueStatus, setQueueStatus] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const syncLinksQueue = () =>
     fetchLinksQueue()
@@ -51,7 +52,9 @@ const Popup = () => {
 
   useEffect(() => {
     // first sync
+    setLoading(true)
     syncLinksQueue()
+      .then(() => setLoading(false))
 
     // set re-sync after every 2 secs
     const resyncInterval = 2000
@@ -130,7 +133,7 @@ const Popup = () => {
         </>
       )}
       <h2>Links actuales:</h2>
-      <LinksTable linksQueue={linksQueue}/>
+      <LinksTable loading={loading} linksQueue={linksQueue}/>
     </div>
   )
 }
