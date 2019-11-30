@@ -178,3 +178,16 @@ td .multiline-wrap:after {
   color: white;
   cursor: not-allowed;
 }
+
+.links-table-status {
+  display: flex;
+  flex-direction: column
+}
+
+.links-table-status > *:not(:first-child) {
+  margin-top: 10px;
+}
+
+.links-table-status.hide {
+  visibility: hidden;
+}

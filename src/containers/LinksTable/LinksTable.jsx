@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 const EmptyDataMessage = () => (
   <tr>
@@ -93,27 +93,92 @@ const getActiveStatuses = ({ state } = {}) =>
     .map(([key, value]) => key)
     .join(', ')
 
-export default ({ linksQueue }) => (
-  <>
-    <span>Estado: {linksQueue && <b>{getActiveStatuses(linksQueue)}</b>}</span>
-    <br />
-    <table border="0" cellSpacing="0" cellPadding="0">
+const _copyElement = el => {
+  if (!el) {
+    throw new Error('Element to copy must be defined ')
+  }
+  const body = document.body
+  let range, sel
+
+  if (document.createRange && window.getSelection) {
+    range = document.createRange()
+    sel = window.getSelection()
+    sel.removeAllRanges()
+    try {
+      range.selectNodeContents(el)
+      sel.addRange(range)
+    } catch (e) {
+      range.selectNode(el)
+      sel.addRange(range)
+    }
+    document.execCommand('copy')
+    sel.removeRange(range)
+
+  } else if (body.createTextRange) {
+    range = body.createTextRange()
+    range.moveToElementText(el)
+    range.select()
+    range.execCommand('Copy')
+  }
+  window.getSelection().removeAllRanges()
+}
+
+const handleCopyAction = ({ jobQueue }) => {
+  const el = (document.getElementsByClassName('links-table') || [])[0]
+  console.log('Copying...')
+  _copyElement(el)
+  console.log(`Copied links queue table to clipboard (${jobQueue.length} links)`)
+}
+
+const copyingStates = {
+  DEFAULT: 'Copiar',
+  COPYING: 'Copiando...',
+  COPIED: 'Copiado!',
+}
+
+export default ({ linksQueue }) => {
+  const [copying, setCopying] = useState(copyingStates.DEFAULT)
+
+  useEffect(() => {
+    if (copying === copyingStates.COPYING) {
+      handleCopyAction(linksQueue)
+      setCopying(copyingStates.COPIED)
+      setTimeout(() => {
+        setCopying(copyingStates.DEFAULT)
+      }, 2000)
+    }
+  }, [copying])
+
+  const handleCopyActionCb = useCallback(e => {
+    e.preventDefault()
+    setCopying(copyingStates.COPYING)
+  }, [])
+
+  const linksQueueEmpty = !linksQueue || linksQueue.jobQueue.length === 0
+
+  return <>
+    <div className={`links-table-status ${linksQueueEmpty ? 'hide' : ''}`}>
+      <span>Estado: {linksQueue && <b>{getActiveStatuses(linksQueue)}</b>}</span>
+      <a href="#" onClick={handleCopyActionCb}>{copying}</a>
+    </div>
+    <br/>
+    <table className={'links-table'} border="0" cellSpacing="0" cellPadding="0">
       <thead>
-        <tr>
-          <th>#</th>
-          <th>Link</th>
-          <th>Resultado</th>
-          <th>Detalle</th>
-          <th>Comentarios</th>
-          <th>Duración</th>
-        </tr>
+      <tr>
+        <th>#</th>
+        <th>Link</th>
+        <th>Resultado</th>
+        <th>Detalle</th>
+        <th>Comentarios</th>
+        <th>Duración</th>
+      </tr>
       </thead>
       <tbody>
-        {!linksQueue || linksQueue.jobQueue.length === 0 ? (
-          <EmptyDataMessage />
-        ) : (
-          <TableData links={linksQueue.jobQueue} />
-        )}
+      {linksQueueEmpty ? (
+        <EmptyDataMessage/>
+      ) : (
+        <TableData links={linksQueue.jobQueue}/>
+      )}
       </tbody>
     </table>
   </>
