@@ -24,7 +24,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
     chrome.tabs.create({ url: link, active: true }, async tab => {
       // check tab open errors
       if (chrome.runtime.lastError) {
-        console.log('Error opening tab', chrome.runtime.lastError)
+        console.log('Error opening tab', chrome.runtime.lastError.message)
         reject(chrome.runtime.lastError)
         return
       }
@@ -41,7 +41,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
 
       // check channel open error
       if (chrome.runtime.lastError) {
-        console.log('Error opening channel', chrome.runtime.lastError)
+        console.log('Error opening channel', chrome.runtime.lastError.message)
         reject(chrome.runtime.lastError)
         return
       }
@@ -49,7 +49,7 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       // send first start message
       channel.postMessage({ type: 'start-whatsapp-send' })
       if (chrome.runtime.lastError) {
-        console.log('Error sending message \'start-whatsapp-send\'', chrome.runtime.lastError)
+        console.log('Error sending message \'start-whatsapp-send\'', chrome.runtime.lastError.message)
         reject(chrome.runtime.lastError)
         return
       }
@@ -58,9 +58,19 @@ const processWhatsappLink = async (link, onUpdateStatusDetail) => {
       onUpdateStatusDetail('IN_PROGRESS')
 
       const onDisconnectHandler = channel => {
-        console.log('Connection finished abruptly', channel, chrome.runtime.lastError)
+        const errDetail = chrome.runtime.lastError ? chrome.runtime.lastError.message : ''
+        const errMsg = 'Connection finished abruptly'
+        console.log(errMsg, errDetail, channel)
         onUpdateStatusDetail('UNEXPECTED_ABORT')
-        reject('Whatsapp tab closed unexpectedly')
+
+        // ensure closed tab, in case of disconnected w/no internet connection
+        chrome.tabs.remove(tab.id)
+        if (chrome.runtime.lastError) {
+          // tab remove error -> it was already closed
+          console.log('Tab has been closed unexpectedly, by the user?')
+        }
+
+        reject(`Whatsapp tab closed unexpectedly: ${errDetail}`)
       }
 
       // abort/disconnect listener
