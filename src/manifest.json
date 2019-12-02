@@ -1,6 +1,6 @@
 {
   "name": "Wazzaabot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Envio de mensajes masivos por Whatsapp Web",
   "manifest_version": 2,
   "background": {
