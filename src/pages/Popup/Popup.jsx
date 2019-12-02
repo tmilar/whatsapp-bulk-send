@@ -1,4 +1,4 @@
-import React, { Component, useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import './Popup.css'
 import LinksForm from '../../containers/LinksForm/LinksForm'
 import LinksTable from '../../containers/LinksTable/LinksTable'
@@ -93,7 +93,7 @@ const Popup = () => {
         <LinksForm onSubmit={syncLinksQueueCallback}/>
       </div>
       <h2>Links actuales:</h2>
-      {linksQueue && <LinksQueueActions queue={linksQueue} onQueueAction={requestQueueOperation}/> }
+      {linksQueue && <LinksQueueActions queue={linksQueue} onQueueAction={requestQueueOperation}/>}
       <LinksTable loading={loading} linksQueue={linksQueue}/>
     </div>
   )

@@ -1,5 +1,5 @@
-import LinksQueueActionButtons from '../LinksQueueActionButtons/LinksQueueActionButtons'
 import React, { useCallback, useState } from 'react'
+import LinksQueueActionButtons from './component/LinksQueueActionButtons'
 
 const LinksQueueActions = ({ queue, onQueueAction: requestQueueOperation }) => {
   const [queueStatus, setQueueStatus] = useState(null)
