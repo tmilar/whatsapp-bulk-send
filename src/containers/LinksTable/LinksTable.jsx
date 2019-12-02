@@ -1,4 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import {humanizer} from 'humanize-duration'
+
+const humanizeSpDuration = humanizer({
+  round: true,
+  language: 'shortSp',
+  languages: {
+    shortSp: {
+      y: () => 'años',
+      mo: () => 'meses',
+      w: () => 'sem',
+      d: () => 'días',
+      h: () => 'hs',
+      m: () => 'min',
+      s: () => 'seg',
+      ms: () => 'ms',
+    }
+  }
+})
 
 const EmptyDataMessage = ({ loading }) => (
   <tr>
@@ -93,6 +111,96 @@ const getActiveStatuses = ({ state } = {}) =>
     .map(([key, value]) => key)
     .join(', ')
 
+const getJobQueueStats = jobQueue => {
+  const { processed, withError, elapsedTime, elapsedTimeSuccess, elapsedCurrentActive} = jobQueue.reduce((stats, job, i) => {
+    const { state: {result}, endTimestamp, startTimestamp } = job
+    if (!!result) {
+      stats.processed++
+    }
+    if (result === 'ERROR') {
+      stats.withError++
+    }
+
+    const elapsedCurrentActive = !endTimestamp && startTimestamp && (Date.now() - startTimestamp)
+    const elapsedCurrentFinished = endTimestamp && (endTimestamp - startTimestamp)
+
+    if(elapsedCurrentActive) {
+      stats.elapsedCurrentActive = elapsedCurrentActive
+      stats.currentActive = i
+    }
+
+    stats.elapsedTime += elapsedCurrentFinished || elapsedCurrentActive || 0
+
+    if(result && result !== 'ERROR') {
+      stats.elapsedTimeSuccess += elapsedCurrentFinished
+    }
+
+    // console.log("stats " + i, stats)
+    return stats
+  }, { processed: 0, withError: 0, elapsedTime: 0 , elapsedTimeSuccess: 0, elapsedCurrentActive: null})
+
+  const total = jobQueue.length
+  const processedPercent = total > 0 ? processed / total : 0
+  const withErrorPercent = total > 0 ? withError / total : 0
+
+  const elapsedTimeAvg = processed > 0 ? elapsedTime / processed : 0
+
+  const withSuccess = processed - withError
+  const withSuccessPercent = total > 0 ? withSuccess / total : 0
+  const elapsedTimeSuccessAvg = withSuccess > 0 ? elapsedTimeSuccess / withSuccess : 0
+
+  const pendingLinks = total - processed
+  const estimatedTimeLeft = elapsedTimeSuccessAvg > 0 && (pendingLinks * elapsedTimeSuccessAvg) - (elapsedCurrentActive || 0)
+
+  return {
+    total,
+    processed,
+    processedPercent,
+    withSuccess,
+    withSuccessPercent,
+    withError,
+    withErrorPercent,
+    elapsedTime,
+    elapsedTimeSuccessAvg,
+    elapsedTimeAvg,
+    elapsedCurrentActive,
+    estimatedTimeLeft,
+  }
+}
+
+const JobQueueStats = ({ jobQueue }) => {
+  const {
+    total,
+    processed,
+    processedPercent,
+    withError,
+    withErrorPercent,
+    elapsedTime,
+    elapsedTimeSuccessAvg,
+    estimatedTimeLeft,
+  } = getJobQueueStats(jobQueue)
+
+  return <span>Total: <b>{total}</b>{' '}
+    | Procesados: <span className={'in-progress'}>{processed}</span> ({`${roundNumber(processedPercent * 100, 1)}%`}){' '}
+    | Con error: <span className={'error'}>{withError}</span> ({`${roundNumber(withErrorPercent * 100, 1)}%`}){' '}
+    | Duración total: {humanizeSpDuration(elapsedTime)}{' '}
+    | Duracion Prom.: {humanizeSpDuration(elapsedTimeSuccessAvg)}{' '}
+    | Tiempo restante estimado: {estimatedTimeLeft === 0 ? '...' : humanizeSpDuration(estimatedTimeLeft)}
+  </span>
+}
+
+const TableDataStatus = ({ linksQueue }) => {
+  let jobQueue
+  if (linksQueue) {
+    jobQueue = linksQueue.jobQueue
+  }
+
+  return <div className={'links-table-status'}>
+    <span>Estado: {linksQueue && <b>{getActiveStatuses(linksQueue)}</b>}</span>
+    {jobQueue && <JobQueueStats jobQueue={jobQueue}/>}
+  </div>
+}
+
 const _copyElement = el => {
   if (!el) {
     throw new Error('Element to copy must be defined ')
@@ -158,7 +266,7 @@ export default ({ linksQueue, loading }) => {
 
   return <>
     <div className={`links-table-status ${linksQueueEmpty ? 'hide' : ''}`}>
-      <span>Estado: {linksQueue && <b>{getActiveStatuses(linksQueue)}</b>}</span>
+      <TableDataStatus linksQueue={linksQueue}/>
       <a href="#" onClick={handleCopyActionCb}>{copying}</a>
     </div>
     <br/>

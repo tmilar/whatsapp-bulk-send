@@ -57,7 +57,7 @@ const Popup = () => {
       .then(() => setLoading(false))
 
     // set re-sync after every 2 secs
-    const resyncInterval = 20000
+    const resyncInterval = 2000
     let timeout
     let updatedResyncTimeout
     const runResync = () => {
