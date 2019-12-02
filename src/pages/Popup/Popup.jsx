@@ -2,7 +2,7 @@ import React, { Component, useCallback, useEffect, useState } from 'react'
 import './Popup.css'
 import LinksForm from '../../containers/LinksForm/LinksForm'
 import LinksTable from '../../containers/LinksTable/LinksTable'
-import LinksQueueActionButtons from '../../containers/LinksQueueActionButtons/LinksQueueActionButtons'
+import LinksQueueActions from '../../containers/LinksQueueActions/LinksQueueActions'
 
 const fetchLinksQueue = () =>
   new Promise((resolve, reject) =>
@@ -37,7 +37,6 @@ const requestQueueOperation = ({ type }) =>
 
 const Popup = () => {
   const [linksQueue, setLinksQueue] = useState(null)
-  const [queueStatus, setQueueStatus] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const syncLinksQueue = () =>
@@ -63,13 +62,11 @@ const Popup = () => {
     const runResync = () => {
       let start = Date.now()
       let useUpdatedResync = typeof updatedResyncTimeout === 'number'
-      // console.log(`Setting timeout to ${useUpdatedResync ? 'updatedResyncTimeout' + updatedResyncTimeout : 'resyncInterval' + resyncInterval}`)
       timeout = setTimeout(() => {
         syncLinksQueue().then(() => {
           let end = Date.now()
           let elapsed = end - start
           updatedResyncTimeout = resyncInterval - elapsed
-          // console.log(`Would set timeout to ${updatedResyncTimeout}`)
         }).then(runResync)
       },  useUpdatedResync ? updatedResyncTimeout : resyncInterval)
     }
@@ -79,44 +76,7 @@ const Popup = () => {
     return () => clearTimeout(timeout)
   }, [])
 
-  const requestQueueStatusUpdate = ({ type, onSuccessMsg, onErrorMsg }) =>
-    requestQueueOperation({ type })
-      .then(() => setQueueStatus({ message: onSuccessMsg }))
-      .catch(error => setQueueStatus({ message: onErrorMsg(error) }))
-
-  const queueStart = () =>
-    requestQueueStatusUpdate({
-      type: 'start',
-      onSuccessMsg: 'Comenzado!',
-      onErrorMsg: error => `No se pudo empezar. ${error ? error.message || error : ''}`,
-    })
-
-  const queuePause = () =>
-    requestQueueStatusUpdate({
-      type: 'pause',
-      onSuccessMsg: 'En pausa',
-      onErrorMsg: error => `No se pudo pausar. ${error ? error.message || error : ''}`,
-    })
-
-  const queueResume = () =>
-    requestQueueStatusUpdate({
-      type: 'resume',
-      onSuccessMsg: 'Continuando',
-      onErrorMsg: error => `No se pudo continuar. ${error ? error.message || error : ''}`,
-    })
-
-  const queueStop = () =>
-    requestQueueStatusUpdate({
-      type: 'stop',
-      onSuccessMsg: 'Finalizado',
-      onErrorMsg: error => `No se pudo finalizar. ${error ? error.message || error : ''}`,
-    })
-
   const syncLinksQueueCallback = useCallback(syncLinksQueue, [])
-  const handleQueueStartAction = useCallback(queueStart, [])
-  const handleQueuePauseAction = useCallback(queuePause, [])
-  const handleQueueResumeAction = useCallback(queueResume, [])
-  const handleQueueStopAction = useCallback(queueStop, [])
 
   return (
     <div>
@@ -132,21 +92,8 @@ const Popup = () => {
       >
         <LinksForm onSubmit={syncLinksQueueCallback}/>
       </div>
-      {linksQueue &&
-      <LinksQueueActionButtons queue={linksQueue}
-                               onStartAction={handleQueueStartAction}
-                               onPauseAction={handleQueuePauseAction}
-                               onStopAction={handleQueueStopAction}
-                               onResumeAction={handleQueueResumeAction}
-      />
-      }
-      {queueStatus && (
-        <>
-          <br/>
-          <span>{queueStatus.message}</span>
-        </>
-      )}
       <h2>Links actuales:</h2>
+      {linksQueue && <LinksQueueActions queue={linksQueue} onQueueAction={requestQueueOperation}/> }
       <LinksTable loading={loading} linksQueue={linksQueue}/>
     </div>
   )
