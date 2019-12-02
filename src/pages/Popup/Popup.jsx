@@ -57,12 +57,26 @@ const Popup = () => {
       .then(() => setLoading(false))
 
     // set re-sync after every 2 secs
-    const resyncInterval = 2000
-    const interval = setInterval(() => {
-      return syncLinksQueue()
-    }, resyncInterval)
+    const resyncInterval = 20000
+    let timeout
+    let updatedResyncTimeout
+    const runResync = () => {
+      let start = Date.now()
+      let useUpdatedResync = typeof updatedResyncTimeout === 'number'
+      // console.log(`Setting timeout to ${useUpdatedResync ? 'updatedResyncTimeout' + updatedResyncTimeout : 'resyncInterval' + resyncInterval}`)
+      timeout = setTimeout(() => {
+        syncLinksQueue().then(() => {
+          let end = Date.now()
+          let elapsed = end - start
+          updatedResyncTimeout = resyncInterval - elapsed
+          // console.log(`Would set timeout to ${updatedResyncTimeout}`)
+        }).then(runResync)
+      },  useUpdatedResync ? updatedResyncTimeout : resyncInterval)
+    }
 
-    return () => clearInterval(interval)
+    runResync()
+
+    return () => clearTimeout(timeout)
   }, [])
 
   const requestQueueStatusUpdate = ({ type, onSuccessMsg, onErrorMsg }) =>
