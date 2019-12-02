@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import {humanizer} from 'humanize-duration'
+import { humanizer } from 'humanize-duration'
 
 const humanizeSpDuration = humanizer({
   round: true,
@@ -14,8 +14,8 @@ const humanizeSpDuration = humanizer({
       m: () => 'min',
       s: () => 'seg',
       ms: () => 'ms',
-    }
-  }
+    },
+  },
 })
 
 const EmptyDataMessage = ({ loading }) => (
@@ -112,8 +112,8 @@ const getActiveStatuses = ({ state } = {}) =>
     .join(', ')
 
 const getJobQueueStats = jobQueue => {
-  const { processed, withError, elapsedTime, elapsedTimeSuccess, elapsedCurrentActive} = jobQueue.reduce((stats, job, i) => {
-    const { state: {result}, endTimestamp, startTimestamp } = job
+  const { processed, withError, elapsedTime, elapsedTimeSuccess, elapsedCurrentActive } = jobQueue.reduce((stats, job, i) => {
+    const { state: { result }, endTimestamp, startTimestamp } = job
     if (!!result) {
       stats.processed++
     }
@@ -124,20 +124,20 @@ const getJobQueueStats = jobQueue => {
     const elapsedCurrentActive = !endTimestamp && startTimestamp && (Date.now() - startTimestamp)
     const elapsedCurrentFinished = endTimestamp && (endTimestamp - startTimestamp)
 
-    if(elapsedCurrentActive) {
+    if (elapsedCurrentActive) {
       stats.elapsedCurrentActive = elapsedCurrentActive
       stats.currentActive = i
     }
 
     stats.elapsedTime += elapsedCurrentFinished || elapsedCurrentActive || 0
 
-    if(result && result !== 'ERROR') {
+    if (result && result !== 'ERROR') {
       stats.elapsedTimeSuccess += elapsedCurrentFinished
     }
 
     // console.log("stats " + i, stats)
     return stats
-  }, { processed: 0, withError: 0, elapsedTime: 0 , elapsedTimeSuccess: 0, elapsedCurrentActive: null})
+  }, { processed: 0, withError: 0, elapsedTime: 0, elapsedTimeSuccess: 0, elapsedCurrentActive: null })
 
   const total = jobQueue.length
   const processedPercent = total > 0 ? processed / total : 0
@@ -173,6 +173,8 @@ const JobQueueStats = ({ jobQueue }) => {
     total,
     processed,
     processedPercent,
+    withSuccess,
+    withSuccessPercent,
     withError,
     withErrorPercent,
     elapsedTime,
@@ -180,10 +182,13 @@ const JobQueueStats = ({ jobQueue }) => {
     estimatedTimeLeft,
   } = getJobQueueStats(jobQueue)
 
-  return <span>Total: <b>{total}</b>{' '}
-    | Procesados: <span className={'in-progress'}>{processed}</span> ({`${roundNumber(processedPercent * 100, 1)}%`}){' '}
+  return <span>
+    Total: <span className={processedPercent < 1 ? 'in-progress' : ''}>{processed}</span> de <b>{total}</b>{' '}
+    ({`${roundNumber(processedPercent * 100, 1)}%`}){' '}
+    | Enviados: <span className={'success'}>{withSuccess}</span> ({`${roundNumber(withSuccessPercent * 100, 1)}%`}){' '}
     | Con error: <span className={'error'}>{withError}</span> ({`${roundNumber(withErrorPercent * 100, 1)}%`}){' '}
-    | Duración total: {humanizeSpDuration(elapsedTime)}{' '}
+    <br/>
+    Duración total: {humanizeSpDuration(elapsedTime)}{' '}
     | Duracion Prom.: {humanizeSpDuration(elapsedTimeSuccessAvg)}{' '}
     | Tiempo restante estimado: {estimatedTimeLeft === 0 ? '...' : humanizeSpDuration(estimatedTimeLeft)}
   </span>
