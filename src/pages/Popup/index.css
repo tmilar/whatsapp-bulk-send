@@ -183,6 +183,10 @@ td .multiline-wrap:after {
   flex-direction: column
 }
 
+.links-table-export-actions {
+  font-size: 14px;
+}
+
 .links-table-status > *:not(:first-child) {
   margin-top: 10px;
 }

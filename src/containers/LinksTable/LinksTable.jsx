@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { humanizer } from 'humanize-duration'
+import downloadHtmlTableToCsv from '../../util/downloadHtmlTableToCsv'
 
 const humanizeSpDuration = humanizer({
   round: true,
@@ -274,13 +275,22 @@ export default ({ linksQueue, loading }) => {
 
   const linksQueueEmpty = !linksQueue || linksQueue.jobQueue.length === 0
 
+  const handleExportActionCb = useCallback(e => {
+    e.preventDefault()
+    downloadHtmlTableToCsv({ tableId: 'links-table', title: 'whatsapp-links' })
+  }, [])
+
   return <>
     <div className={`links-table-status ${linksQueueEmpty ? 'hide' : ''}`}>
       <TableDataStatus linksQueue={linksQueue}/>
-      <a href="#" onClick={handleCopyActionCb}>{copying}</a>
+      <div className={'links-table-export-actions'}>
+        <i>Exportar: </i>
+        <a href="#" onClick={handleCopyActionCb}>{copying}</a> |{' '}
+        <a href="#" onClick={handleExportActionCb}>Descargar</a>
+      </div>
     </div>
     <br/>
-    <table className={'links-table'} border="0" cellSpacing="0" cellPadding="0">
+    <table id='links-table' className={'links-table'} border="0" cellSpacing="0" cellPadding="0">
       <thead>
       <tr>
         <th>#</th>
