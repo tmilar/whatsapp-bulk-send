@@ -68,7 +68,7 @@ const Popup = () => {
           let elapsed = end - start
           updatedResyncTimeout = resyncInterval - elapsed
         }).then(runResync)
-      },  useUpdatedResync ? updatedResyncTimeout : resyncInterval)
+      }, useUpdatedResync ? updatedResyncTimeout : resyncInterval)
     }
 
     runResync()

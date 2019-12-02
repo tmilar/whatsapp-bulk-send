@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import LinksQueueActionButtons from './component/LinksQueueActionButtons'
 
 const LinksQueueActions = ({ queue, onQueueAction: requestQueueOperation }) => {
@@ -42,6 +42,11 @@ const LinksQueueActions = ({ queue, onQueueAction: requestQueueOperation }) => {
   const handleQueueResumeAction = useCallback(queueResume, [])
   const handleQueueStopAction = useCallback(queueStop, [])
 
+  // cleanup queueStatus after 3 secs
+  useEffect(() => {
+    const timeout = setTimeout(() => setQueueStatus(null), 3000)
+    return () => clearTimeout(timeout)
+  }, [queueStatus])
 
   return <>
     <LinksQueueActionButtons queue={queue}
