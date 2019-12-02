@@ -168,7 +168,7 @@ const getJobQueueStats = jobQueue => {
   }
 }
 
-const JobQueueStats = ({ jobQueue }) => {
+const JobQueueStats = ({ jobQueue, queueState }) => {
   const {
     total,
     processed,
@@ -182,9 +182,16 @@ const JobQueueStats = ({ jobQueue }) => {
     estimatedTimeLeft,
   } = getJobQueueStats(jobQueue)
 
+  const TotalStr = <>Total: <b>{total}</b></>
+  const ProcessedStr = <>Procesados:{' '}
+    <span className={processedPercent < 1 ? 'in-progress' : ''}>{processed}</span> de <b>{total}</b>{' '}
+    ({`${roundNumber(processedPercent * 100, 1)}%`})
+  </>
+
+  const { started } = queueState
+
   return <span>
-    Total: <span className={processedPercent < 1 ? 'in-progress' : ''}>{processed}</span> de <b>{total}</b>{' '}
-    ({`${roundNumber(processedPercent * 100, 1)}%`}){' '}
+    {started ? ProcessedStr : TotalStr}{' '}
     | Enviados: <span className={'success'}>{withSuccess}</span> ({`${roundNumber(withSuccessPercent * 100, 1)}%`}){' '}
     | Con error: <span className={'error'}>{withError}</span> ({`${roundNumber(withErrorPercent * 100, 1)}%`}){' '}
     <br/>
@@ -195,14 +202,12 @@ const JobQueueStats = ({ jobQueue }) => {
 }
 
 const TableDataStatus = ({ linksQueue }) => {
-  let jobQueue
-  if (linksQueue) {
-    jobQueue = linksQueue.jobQueue
-  }
+  const currentStatusStr = linksQueue && getActiveStatuses(linksQueue)
+  const defualtStatusStr = 'Listo para comenzar'
 
   return <div className={'links-table-status'}>
-    <span>Estado: {linksQueue && <b>{getActiveStatuses(linksQueue)}</b>}</span>
-    {jobQueue && <JobQueueStats jobQueue={jobQueue}/>}
+    <span>Estado: {linksQueue && (currentStatusStr ? <b>{currentStatusStr}</b> : <i>{defualtStatusStr}</i>)}</span>
+    {linksQueue && <JobQueueStats jobQueue={linksQueue.jobQueue} queueState={linksQueue.state}/>}
   </div>
 }
 
