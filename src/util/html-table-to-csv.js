@@ -1,12 +1,13 @@
 /**
- * Quick and simple export target #table_id into a csv
- * source: https://stackoverflow.com/a/56370447/6279385
+ * Build CSV string from HTML table, query by id
  *
- * @param tableId
+ * @param tableId {string}
+ * @return {string} - csv content string
  */
-export default function downloadHtmlTableToCsv({tableId, title = ''}) {
+export function htmlTableToCsv(tableId) {
   // Select rows from table_id
   const rows = document.querySelectorAll('table#' + tableId + ' tr')
+
   // Construct csv
   const csv = []
   for (let i = 0; i < rows.length; i++) {
@@ -21,7 +22,20 @@ export default function downloadHtmlTableToCsv({tableId, title = ''}) {
     }
     csv.push(row.join(';'))
   }
-  const csv_string = csv.join('\n')
+
+  return csv.join('\n')
+}
+
+/**
+ * Quick and simple export target #table_id into a csv
+ * source: https://stackoverflow.com/a/56370447/6279385
+ *
+ * @param tableId
+ */
+export function downloadHtmlTableAsCsv({tableId, title = ''}) {
+  // Build CSV content from HTML table
+  const csvString = htmlTableToCsv(tableId)
+
   // Download it
   const dateStr = new Date().toISOString().slice(0,-5).replace("T", "_").replace(/:/g, "-")
   const filename = ['export', title, dateStr].join("_") + '.csv'
@@ -29,7 +43,7 @@ export default function downloadHtmlTableToCsv({tableId, title = ''}) {
   const link = document.createElement('a')
   link.style.display = 'none'
   link.setAttribute('target', '_blank')
-  link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string))
+  link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString))
   link.setAttribute('download', filename)
   document.body.appendChild(link)
   link.click()

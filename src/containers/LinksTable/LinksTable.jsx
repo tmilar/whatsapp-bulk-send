@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { humanizer } from 'humanize-duration'
-import downloadHtmlTableToCsv from '../../util/downloadHtmlTableToCsv'
+import {downloadHtmlTableAsCsv} from '../../util/html-table-to-csv'
 
 const humanizeSpDuration = humanizer({
   round: true,
@@ -277,7 +277,7 @@ export default ({ linksQueue, loading }) => {
 
   const handleExportActionCb = useCallback(e => {
     e.preventDefault()
-    downloadHtmlTableToCsv({ tableId: 'links-table', title: 'whatsapp-links' })
+    downloadHtmlTableAsCsv({ tableId: 'links-table', title: 'whatsapp-links' })
   }, [])
 
   return <>
